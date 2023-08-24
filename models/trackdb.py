@@ -183,6 +183,42 @@ class TrackDB(DBBase):
             upsert=True,
         )
 
+    def add_fav_user(self, pid: str, talk_id: str, uid: str) -> None:
+        ''' Add fav user to talk '''
+        self.find_one_and_update(
+            {'pid': pid, 'cate': 'raw_talk', 'code': talk_id},
+            {'$addToSet': {'fav_users': uid}},
+            upsert=True
+        )
+
+    def del_fav_user(self, pid: str, talk_id: str, uid: str) -> None:
+        ''' Delete fav user to talk '''
+        self.find_one_and_update(
+            {'pid': pid, 'cate': 'raw_talk', 'code': talk_id},
+            {'$pull': {'fav_users': uid}},
+            upsert=True
+        )
+
+    def get_num_fav_users(self, pid: str, talk_ids: list[str]) -> dict[str, int]:
+        ''' Get the number of fav users by `talk_ids` '''
+        result: dict[str, int] = {}
+        query = self.aggregate([
+            {"$match": {'pid': pid, 'cate': 'raw_talk', 'code': {'$in': talk_ids}}},
+            {"$project": {
+                'code': True,
+                'num_fav_users': {
+                    '$size': {
+                        '$ifNull': ['$fav_users', []]
+                    }
+                }
+            }}
+        ])
+
+        for data in query:
+            result[data['code']] = data['num_fav_users']
+
+        return result
+
     @staticmethod
     def replace_rooms(talks: list[Talk]) -> None:
         ''' Replace `Room` -> `TR` '''

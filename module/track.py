@@ -107,6 +107,27 @@ class Track:
 
         return result
 
+    def add_fav_user(self, talk_id: str, uid: str) -> None:
+        ''' Add fav user to talk '''
+        TrackDB().add_fav_user(pid=self.pid, talk_id=talk_id, uid=uid)
+
+    def del_fav_user(self, talk_id: str, uid: str) -> None:
+        ''' Delete fav user to talk '''
+        TrackDB().del_fav_user(pid=self.pid, talk_id=talk_id, uid=uid)
+
+    def get_num_fav_users(self, talk_ids: list[str]) -> dict[str, int]:
+        ''' Get the number of fav users by `talk_ids` '''
+        return TrackDB().get_num_fav_users(pid=self.pid, talk_ids=talk_ids)
+
+    @staticmethod
+    def get_ids(talks: list[Talk]) -> list[str]:
+        ''' Get talk_ids of `Talks` '''
+        result: list[str] = []
+        for talk in talks:
+            result.append(talk.code)
+
+        return result
+
     @classmethod
     def sitemap(cls) -> list[str]:
         ''' sitemap '''
