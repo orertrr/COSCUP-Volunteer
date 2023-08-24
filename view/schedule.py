@@ -33,6 +33,8 @@ def talks_all(pid: int) -> str | ResponseBase:
     if not talks:
         return redirect(f'/schedule/{pid}')
 
+    count_fav_users = Track(pid=str(pid)).get_num_fav_users(Track.get_ids(talks))
+
     return render_template('schedule_talks.html',
                            pid=pid,
                            track_id='',
@@ -43,6 +45,7 @@ def talks_all(pid: int) -> str | ResponseBase:
                            title_en=talks[0].track['en'],
                            share_code='',
                            talks=talks,
+                           count_fav_users=count_fav_users,
                            track_description={})
 
 
@@ -66,6 +69,8 @@ def talk_one(pid: int, session_id: str) -> str | ResponseBase:
     if not talks:
         return redirect('/schedule/2023')
 
+    count_fav_users = Track(pid=str(pid)).get_num_fav_users([talks[0].code])
+
     return render_template('schedule_talks.html',
                            pid=pid,
                            track_id='',
@@ -76,6 +81,7 @@ def talk_one(pid: int, session_id: str) -> str | ResponseBase:
                            title_en=f'By {talks[0].speakers[0].name}',
                            share_code='',
                            talks=talks,
+                           count_fav_users=count_fav_users,
                            track_description={})
 
 
@@ -115,6 +121,8 @@ def talks_favs_my(pid: int, share_code: str | None = None) -> str | ResponseBase
             if speaker.biography:
                 speaker.biography = markdown(speaker.biography)
 
+    count_fav_users = Track(pid=str(pid)).get_num_fav_users(Track.get_ids(talks))
+
     return render_template('schedule_talks.html',
                            pid=pid,
                            track_id='',
@@ -123,6 +131,7 @@ def talks_favs_my(pid: int, share_code: str | None = None) -> str | ResponseBase
                            title_en=title_en,
                            share_code=talk_favs.get_share_code(),
                            talks=talks,
+                           count_fav_users=count_fav_users,
                            track_description={})
 
 
@@ -145,10 +154,12 @@ def talks_favs(pid: int) -> str | ResponseBase:
             return jsonify({'note': '已匯入關注議程', 'favs': favs})
 
         if data['case'] == 'add':
+            Track(pid=str(pid)).add_fav_user(talk_id=data['talk_id'], uid=uid)
             favs = TalkFavs(pid=str(pid), uid=uid).add(talk_id=data['talk_id'])
             return jsonify({'note': '已加入關注', 'favs': favs})
 
         if data['case'] == 'delete':
+            Track(pid=str(pid)).del_fav_user(talk_id=data['talk_id'], uid=uid)
             favs = TalkFavs(pid=str(pid), uid=uid).delete(
                 talk_id=data['talk_id'])
             return jsonify({'note': '已移除關注', 'favs': favs})
@@ -180,6 +191,8 @@ def show_talks(pid: int, track_id: str, track_name: str) -> str | ResponseBase:
     if not talks:
         return redirect(f'/schedule/{pid}')
 
+    count_fav_users = Track(pid=str(pid)).get_num_fav_users(Track.get_ids(talks))
+
     return render_template('schedule_talks.html',
                            pid=pid,
                            track_id=track_id,
@@ -189,6 +202,7 @@ def show_talks(pid: int, track_id: str, track_name: str) -> str | ResponseBase:
                            title_en=talks[0].track['en'],
                            share_code='',
                            talks=talks,
+                           count_fav_users=count_fav_users,
                            track_description=track_description)
 
 
